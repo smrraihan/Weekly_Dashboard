@@ -1,0 +1,714 @@
+library(rio)
+library(devtools)
+library(googlesheets4)
+library(dplyr)
+library(data.table)
+library(openxlsx)
+library(readxl)
+library(lubridate)
+library(stringr)
+library(tidyverse)
+library(lubridate)
+
+Master <- read_sheet("https://docs.google.com/spreadsheets/d/<sheet link>",sheet = "<sheet name>", skip= 1) #This is the Master sheet where all the channels' information is stored
+Master_Data <- select(Master, c("Channel ID","Category",	"Type",	"Assigned to",	"Channel Country",	"Bucket")) #Taking only the required info
+colnames(Master_Data)[1] <- "Channel" #Changing the column name to match with the database files
+OWN_CHANNEL <- read_sheet("https://docs.google.com/spreadsheets/d/<sheet link>", sheet = "<sheet name>") #These are the channels which own by Bongo
+
+ROOT_DIRECTORY <- "G:/My Drive" #write your root google drive directory where the Weekly folder is
+
+ORIGINAL_DIRECTORY <- getwd()
+
+
+# NEW DATA
+# BONGO
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/BONGO/CHANNEL"))
+
+channel_count <- list.files()
+
+BONGO_CHANNEL <- data.frame()
+
+for (i in 1:length(channel_count)){
+  BONGO_CHANNEL_1 <- read.xlsx(channel_count[i], sep.names = " ")
+  BONGO_CHANNEL_1 <- mutate(BONGO_CHANNEL_1,WEEK_FROM = channel_count[i])
+  BONGO_CHANNEL_1 <- mutate(BONGO_CHANNEL_1,WEEK_TILL = channel_count[i])
+  BONGO_CHANNEL <- rbind(BONGO_CHANNEL_1, BONGO_CHANNEL)
+  rm(BONGO_CHANNEL_1)
+}
+BONGO_CHANNEL$WEEK_FROM <-str_sub(BONGO_CHANNEL$WEEK_FROM, 9,18)
+BONGO_CHANNEL$WEEK_TILL <-str_sub(BONGO_CHANNEL$WEEK_TILL, 20,29)
+BONGO_CHANNEL <- BONGO_CHANNEL %>% mutate(MCN = "BONGO")
+BONGO_CHANNEL <- BONGO_CHANNEL %>% mutate('RPM (USD)' = 0)
+BONGO_CHANNEL <- BONGO_CHANNEL %>% filter(Channel != "Total")
+BONGO_CHANNEL <- left_join(BONGO_CHANNEL, Master_Data, by = "Channel")
+BONGO_CHANNEL <- BONGO_CHANNEL %>% mutate(OWN = BONGO_CHANNEL$Channel %in% OWN_CHANNEL$OWN)
+BONGO_CHANNEL$OWN <- as.numeric(BONGO_CHANNEL$OWN)
+BONGO_CHANNEL$WEEK_FROM <- as.Date(BONGO_CHANNEL$WEEK_FROM)
+BONGO_CHANNEL$WEEK_TILL <- as.Date(BONGO_CHANNEL$WEEK_TILL)-1
+BONGO_CHANNEL <- select(BONGO_CHANNEL, c("MCN",
+                                         "OWN",
+                                         "WEEK_FROM",
+                                         "WEEK_TILL",
+                                         "Category",
+                                         "Type",
+                                         "Assigned to",
+                                         "Channel Country",
+                                         "Bucket",
+                                         "Channel",
+                                         "Channel title",
+                                         "Comments added",
+                                         "Shares",
+                                         "Dislikes",
+                                         "Likes",
+                                         "Subscribers lost",
+                                         "Subscribers gained",
+                                         "Estimated monetized playbacks",
+                                         "CPM (USD)",
+                                         "Ad impressions",	"Your estimated revenue (USD)",
+                                         "Average views per viewer",
+                                         "Unique viewers",
+                                         "Impressions click-through rate (%)",
+                                         "Impressions",
+                                         "Videos added",
+                                         "Subscribers",
+                                         "Average percentage viewed (%)",
+                                         "Views","Watch time (hours)",
+                                         "Average view duration",
+                                         "RPM (USD)",
+                                         "Videos published"))
+
+# TOTEM
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/TOTEM/CHANNEL"))
+
+channel_count <- list.files()
+
+TOTEM_CHANNEL <- data.frame()
+
+for (i in 1:length(channel_count)){
+  TOTEM_CHANNEL_1 <- read.xlsx(channel_count[i], sep.names = " ")
+  TOTEM_CHANNEL_1 <- mutate(TOTEM_CHANNEL_1,WEEK_FROM = channel_count[i])
+  TOTEM_CHANNEL_1 <- mutate(TOTEM_CHANNEL_1,WEEK_TILL = channel_count[i])
+  TOTEM_CHANNEL <- rbind(TOTEM_CHANNEL_1, TOTEM_CHANNEL)
+  rm(TOTEM_CHANNEL_1)
+}
+TOTEM_CHANNEL$WEEK_FROM <-str_sub(TOTEM_CHANNEL$WEEK_FROM, 9,18)
+TOTEM_CHANNEL$WEEK_TILL <-str_sub(TOTEM_CHANNEL$WEEK_TILL, 20,29)
+TOTEM_CHANNEL <- TOTEM_CHANNEL %>% mutate(MCN = "TOTEM")
+TOTEM_CHANNEL <- TOTEM_CHANNEL %>% filter(Channel != "Total")
+TOTEM_CHANNEL <- left_join(TOTEM_CHANNEL, Master_Data, by = "Channel")
+TOTEM_CHANNEL <- TOTEM_CHANNEL %>% mutate(OWN = TOTEM_CHANNEL$Channel %in% OWN_CHANNEL$OWN)
+TOTEM_CHANNEL$OWN <- as.numeric(TOTEM_CHANNEL$OWN)
+TOTEM_CHANNEL$WEEK_FROM <- as.Date(TOTEM_CHANNEL$WEEK_FROM)
+TOTEM_CHANNEL$WEEK_TILL <- as.Date(TOTEM_CHANNEL$WEEK_TILL)-1
+TOTEM_CHANNEL <- select(TOTEM_CHANNEL, c("MCN", "OWN",
+                                         "WEEK_FROM",
+                                         "WEEK_TILL",
+                                         "Category",
+                                         "Type",
+                                         "Assigned to",
+                                         "Channel Country",
+                                         "Bucket",
+                                         "Channel",
+                                         "Channel title",
+                                         "Comments added",
+                                         "Shares",
+                                         "Dislikes",
+                                         "Likes",
+                                         "Subscribers lost",
+                                         "Subscribers gained",
+                                         "Estimated monetized playbacks",
+                                         "CPM (USD)",
+                                         "Ad impressions",	"Your estimated revenue (USD)",
+                                         "Average views per viewer",
+                                         "Unique viewers",
+                                         "Impressions click-through rate (%)",
+                                         "Impressions",
+                                         "Videos added",
+                                         "Subscribers",
+                                         "Average percentage viewed (%)",
+                                         "Views","Watch time (hours)",
+                                         "Average view duration",
+                                         "RPM (USD)",
+                                         "Videos published"))
+# VURSE
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/VURSE/CHANNEL"))
+
+channel_count <- list.files()
+
+VURSE_CHANNEL <- data.frame()
+
+for (i in 1:length(channel_count)){
+  VURSE_CHANNEL_1 <- read.xlsx(channel_count[i], sep.names = " ")
+  VURSE_CHANNEL_1 <- mutate(VURSE_CHANNEL_1,WEEK_FROM = channel_count[i])
+  VURSE_CHANNEL_1 <- mutate(VURSE_CHANNEL_1,WEEK_TILL = channel_count[i])
+  VURSE_CHANNEL <- rbind(VURSE_CHANNEL_1, VURSE_CHANNEL)
+  rm(VURSE_CHANNEL_1)
+}
+VURSE_CHANNEL$WEEK_FROM <-str_sub(VURSE_CHANNEL$WEEK_FROM, 9,18)
+VURSE_CHANNEL$WEEK_TILL <-str_sub(VURSE_CHANNEL$WEEK_TILL, 20,29)
+VURSE_CHANNEL <- VURSE_CHANNEL %>% mutate(MCN = "VURSE")
+VURSE_CHANNEL <- VURSE_CHANNEL %>% filter(Channel != "Total")
+VURSE_CHANNEL <- left_join(VURSE_CHANNEL, Master_Data, by = "Channel")
+VURSE_CHANNEL <- VURSE_CHANNEL %>% mutate(OWN = VURSE_CHANNEL$Channel %in% OWN_CHANNEL$OWN)
+VURSE_CHANNEL$OWN <- as.numeric(VURSE_CHANNEL$OWN)
+VURSE_CHANNEL$WEEK_FROM <- as.Date(VURSE_CHANNEL$WEEK_FROM)
+VURSE_CHANNEL$WEEK_TILL <- as.Date(VURSE_CHANNEL$WEEK_TILL)-1
+VURSE_CHANNEL <- select(VURSE_CHANNEL, c("MCN", "OWN",
+                                         "WEEK_FROM",
+                                         "WEEK_TILL",
+                                         "Category",
+                                         "Type",
+                                         "Assigned to",
+                                         "Channel Country",
+                                         "Bucket",
+                                         "Channel",
+                                         "Channel title",
+                                         "Comments added",
+                                         "Shares",
+                                         "Dislikes",
+                                         "Likes",
+                                         "Subscribers lost",
+                                         "Subscribers gained",
+                                         "Estimated monetized playbacks",
+                                         "CPM (USD)",
+                                         "Ad impressions",	"Your estimated revenue (USD)",
+                                         "Average views per viewer",
+                                         "Unique viewers",
+                                         "Impressions click-through rate (%)",
+                                         "Impressions",
+                                         "Videos added",
+                                         "Subscribers",
+                                         "Average percentage viewed (%)",
+                                         "Views","Watch time (hours)",
+                                         "Average view duration",
+                                         "RPM (USD)",
+                                         "Videos published"))
+
+CHANNEL_ALL_NEW <- rbind(BONGO_CHANNEL,TOTEM_CHANNEL,VURSE_CHANNEL)
+colnames(CHANNEL_ALL_NEW) <- c('MCN', "OWN",
+                               'WEEK_FROM',
+                               'WEEK_TILL',
+                               'Category',
+                               'Type',
+                               'Channel Manager',
+                               'Country',
+                               'Bucket',
+                               'Channel ID',
+                               'Channel title',
+                               'Comments',
+                               'Share',
+                               'Dislikes',
+                               'Likes',
+                               'Subscribers lost',
+                               'Subscribers gained',
+                               'Estimated monetized playbacks',
+                               'CPM (USD)',
+                               'Ad impressions',
+                               'Estimated revenue (USD)',
+                               'Average views per viewer',
+                               'Unique viewers',
+                               'Impressions click-through rate (%)',
+                               'Impressions',
+                               'Videos added',
+                               'Subscribers',
+                               'Average percentage viewed (%)',
+                               'Views',
+                               'Watch time (hours)',
+                               'Average view duration',
+                               'RPM (USD)',
+                               'Videos published')
+
+CHANNEL_ALL_NEW <- CHANNEL_ALL_NEW %>% mutate_at(c(12:33),as.numeric)
+
+
+#colnames(OLD_CHANNEL) = colnames(CHANNEL_ALL_NEW)
+
+#All_Channel <- rbind(OLD_CHANNEL,CHANNEL_ALL_NEW)
+sheet_write(CHANNEL_ALL_NEW, ss = "https://docs.google.com/spreadsheets/d/<sheet link>", sheet = "<sheet name>")
+
+
+# DATE
+# OLD DATA
+
+#setwd("D:/WEEKLY/OLD")
+
+#OLD_CHANNEL <- read.xlsx("Old_Channel_monthly_till_November_2021.xlsx",sep.names = " ")
+#OLD_CHANNEL <- select(OLD_CHANNEL, -'Average view duration (min)')
+
+# NEW DATA
+# BONGO
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/BONGO/DATE"))
+
+date_count <- list.files()
+
+BONGO_date <- data.frame()
+
+for (i in 1:length(date_count)){
+  BONGO_date_1 <- read.xlsx(date_count[i], sep.names = " ")
+
+  
+  BONGO_date <- rbind(BONGO_date_1, BONGO_date)
+  rm(BONGO_date_1)
+}
+BONGO_date <- BONGO_date %>% mutate(MCN = "BONGO")
+BONGO_date <- BONGO_date %>% mutate('RPM (USD)' = 0)
+BONGO_date <- BONGO_date %>% filter(Date != "Total")
+
+#BONGO_date <- left_join(BONGO_date, Master_Data, by = "Channel")
+BONGO_date <- select(BONGO_date, c("MCN",
+                                   "Date",
+                                   "Comments added",
+                                   "Shares",
+                                   "Dislikes",
+                                   "Likes",
+                                   "Subscribers lost",
+                                   "Subscribers gained",
+                                   "Estimated monetized playbacks",
+                                   "CPM (USD)",
+                                   "Ad impressions",	"Your estimated revenue (USD)",
+                                   "Average views per viewer",
+                                   "Unique viewers",
+                                   "Impressions click-through rate (%)",
+                                   "Impressions",
+                                   "Videos added",
+                                   "Subscribers",
+                                   "Average percentage viewed (%)",
+                                   "Views","Watch time (hours)",
+                                   "Average view duration",
+                                   "RPM (USD)",
+                                   "Videos published"))
+
+# TOTEM
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/TOTEM/date"))
+
+date_count <- list.files()
+
+TOTEM_date <- data.frame()
+
+for (i in 1:length(date_count)){
+  TOTEM_date_1 <- read.xlsx(date_count[i], sep.names = " ")
+  TOTEM_date <- rbind(TOTEM_date_1, TOTEM_date)
+  rm(TOTEM_date_1)
+}
+TOTEM_date <- TOTEM_date %>% mutate(MCN = "TOTEM")
+TOTEM_date <- TOTEM_date %>% filter(Date != "Total")
+
+#TOTEM_date <- left_join(TOTEM_CHANNEL, Master_Data, by = "Channel")
+TOTEM_date <- select(TOTEM_date, c("MCN",
+                                   "Date",
+                                   "Comments added",
+                                   "Shares",
+                                   "Dislikes",
+                                   "Likes",
+                                   "Subscribers lost",
+                                   "Subscribers gained",
+                                   "Estimated monetized playbacks",
+                                   "CPM (USD)",
+                                   "Ad impressions",	"Your estimated revenue (USD)",
+                                   "Average views per viewer",
+                                   "Unique viewers",
+                                   "Impressions click-through rate (%)",
+                                   "Impressions",
+                                   "Videos added",
+                                   "Subscribers",
+                                   "Average percentage viewed (%)",
+                                   "Views","Watch time (hours)",
+                                   "Average view duration",
+                                   "RPM (USD)",
+                                   "Videos published"))
+# VURSE
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/VURSE/DATE"))
+
+date_count <- list.files()
+
+VURSE_date <- data.frame()
+
+for (i in 1:length(date_count)){
+  VURSE_date_1 <- read.xlsx(date_count[i], sep.names = " ")
+  
+  
+  VURSE_date <- rbind(VURSE_date_1, VURSE_date)
+  rm(VURSE_date_1)
+}
+VURSE_date <- VURSE_date %>% mutate(MCN = "VURSE")
+VURSE_date <- VURSE_date %>% filter(Date != "Total")
+
+#VURSE_date <- left_join(VURSE_date, Master_Data, by = "Channel")
+VURSE_date <- select(VURSE_date, c("MCN",
+                                   
+                                   "Date",
+                                   "Comments added",
+                                   "Shares",
+                                   "Dislikes",
+                                   "Likes",
+                                   "Subscribers lost",
+                                   "Subscribers gained",
+                                   "Estimated monetized playbacks",
+                                   "CPM (USD)",
+                                   "Ad impressions",	"Your estimated revenue (USD)",
+                                   "Average views per viewer",
+                                   "Unique viewers",
+                                   "Impressions click-through rate (%)",
+                                   "Impressions",
+                                   "Videos added",
+                                   "Subscribers",
+                                   "Average percentage viewed (%)",
+                                   "Views","Watch time (hours)",
+                                   "Average view duration",
+                                   "RPM (USD)",
+                                   "Videos published"))
+
+date_ALL_NEW <- rbind(BONGO_date,TOTEM_date,VURSE_date)
+colnames(date_ALL_NEW) <- c("MCN",
+                            
+                            "Date",
+                            "Comments",
+                            "Shares",
+                            "Dislikes",
+                            "Likes",
+                            "Subscribers lost",
+                            "Subscribers gained",
+                            "Estimated monetized playbacks",
+                            "CPM (USD)",
+                            "Ad impressions",	"Estimated revenue (USD)",
+                            "Average views per viewer",
+                            "Unique viewers",
+                            "Impressions click-through rate (%)",
+                            "Impressions",
+                            "Videos added",
+                            "Subscribers",
+                            "Average percentage viewed (%)",
+                            "Views","Watch time (hours)",
+                            "Average view duration",
+                            "RPM (USD)",
+                            "Videos published")
+date_ALL_NEW$Date <- as.Date(date_ALL_NEW$Date)
+date_ALL_NEW <- date_ALL_NEW %>% mutate_at(c(3:24),as.numeric)
+
+
+#colnames(OLD_CHANNEL) = colnames(CHANNEL_ALL_NEW)
+
+#All_Channel <- rbind(OLD_CHANNEL,CHANNEL_ALL_NEW)
+sheet_write(date_ALL_NEW, ss = "https://docs.google.com/spreadsheets/d/<sheet link>", sheet = "<sheet name>")
+
+
+
+# GEOGRAPHY
+GEO_COUNTRY <- read_sheet("https://docs.google.com/spreadsheets/d/<sheet link>",sheet = "<sheet name>") #This is the sheet where Geo Code with countries and region is recorded
+
+# BONGO
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/BONGO/GEOGRAPHY"))
+
+GEOGRAPHY_count <- list.files()
+
+BONGO_GEOGRAPHY <- data.frame()
+
+for (i in 1:length(GEOGRAPHY_count)){
+  BONGO_GEOGRAPHY_1 <- read.xlsx(GEOGRAPHY_count[i], sep.names = " ")
+  BONGO_GEOGRAPHY_1 <- mutate(BONGO_GEOGRAPHY_1,WEEK_FROM = GEOGRAPHY_count[i])
+  BONGO_GEOGRAPHY_1 <- mutate(BONGO_GEOGRAPHY_1,WEEK_TILL = GEOGRAPHY_count[i])
+  BONGO_GEOGRAPHY <- rbind(BONGO_GEOGRAPHY_1, BONGO_GEOGRAPHY)
+  rm(BONGO_GEOGRAPHY_1)
+}
+BONGO_GEOGRAPHY$WEEK_FROM <-str_sub(BONGO_GEOGRAPHY$WEEK_FROM, 11,20)
+BONGO_GEOGRAPHY$WEEK_TILL <-str_sub(BONGO_GEOGRAPHY$WEEK_TILL, 22,31)
+BONGO_GEOGRAPHY <- BONGO_GEOGRAPHY %>% mutate(MCN = "BONGO")
+BONGO_GEOGRAPHY <- BONGO_GEOGRAPHY %>% filter(Geography != "Total")
+BONGO_GEOGRAPHY$WEEK_FROM <- as.Date(BONGO_GEOGRAPHY$WEEK_FROM)
+BONGO_GEOGRAPHY$WEEK_TILL <- as.Date(BONGO_GEOGRAPHY$WEEK_TILL)-1
+BONGO_GEOGRAPHY <- left_join(BONGO_GEOGRAPHY,GEO_COUNTRY, by ="Geography" )
+BONGO_GEOGRAPHY <- select(BONGO_GEOGRAPHY, c("MCN",
+                                         "WEEK_FROM",
+                                         "WEEK_TILL",
+                                         "Geography",
+                                         "Country",
+                                         "Comments added",
+                                         "Shares",
+                                         "Dislikes",
+                                         "Likes",
+                                         "Subscribers lost",
+                                         "Subscribers gained",
+                                         "Estimated monetized playbacks",
+                                         "CPM (USD)",
+                                         "Ad impressions",	"Your estimated revenue (USD)",
+                                         "Subscribers",
+                                         "Average percentage viewed (%)",
+                                         "Views","Watch time (hours)",
+                                         "Average view duration","Region","REGION WIKI"))
+
+# TOTEM
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/TOTEM/GEOGRAPHY"))
+
+GEOGRAPHY_count <- list.files()
+
+TOTEM_GEOGRAPHY <- data.frame()
+
+for (i in 1:length(GEOGRAPHY_count)){
+  TOTEM_GEOGRAPHY_1 <- read.xlsx(GEOGRAPHY_count[i], sep.names = " ")
+  TOTEM_GEOGRAPHY_1 <- mutate(TOTEM_GEOGRAPHY_1,WEEK_FROM = GEOGRAPHY_count[i])
+  TOTEM_GEOGRAPHY_1 <- mutate(TOTEM_GEOGRAPHY_1,WEEK_TILL = GEOGRAPHY_count[i])
+  TOTEM_GEOGRAPHY <- rbind(TOTEM_GEOGRAPHY_1, TOTEM_GEOGRAPHY)
+  rm(TOTEM_GEOGRAPHY_1)
+}
+TOTEM_GEOGRAPHY$WEEK_FROM <-str_sub(TOTEM_GEOGRAPHY$WEEK_FROM, 11,20)
+TOTEM_GEOGRAPHY$WEEK_TILL <-str_sub(TOTEM_GEOGRAPHY$WEEK_TILL, 22,31)
+TOTEM_GEOGRAPHY <- TOTEM_GEOGRAPHY %>% mutate(MCN = "TOTEM")
+TOTEM_GEOGRAPHY <- TOTEM_GEOGRAPHY %>% filter(Geography != "Total")
+TOTEM_GEOGRAPHY$WEEK_FROM <- as.Date(TOTEM_GEOGRAPHY$WEEK_FROM)
+TOTEM_GEOGRAPHY$WEEK_TILL <- as.Date(TOTEM_GEOGRAPHY$WEEK_TILL)-1
+TOTEM_GEOGRAPHY <- left_join(TOTEM_GEOGRAPHY,GEO_COUNTRY, by ="Geography" )
+TOTEM_GEOGRAPHY <- select(TOTEM_GEOGRAPHY, c("MCN",
+                                             "WEEK_FROM",
+                                             "WEEK_TILL",
+                                             "Geography",
+                                             "Country",
+                                             "Comments added",
+                                             "Shares",
+                                             "Dislikes",
+                                             "Likes",
+                                             "Subscribers lost",
+                                             "Subscribers gained",
+                                             "Estimated monetized playbacks",
+                                             "CPM (USD)",
+                                             "Ad impressions",	"Your estimated revenue (USD)",
+                                             "Subscribers",
+                                             "Average percentage viewed (%)",
+                                             "Views","Watch time (hours)",
+                                             "Average view duration","Region","REGION WIKI"))
+
+# VURSE
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/VURSE/GEOGRAPHY"))
+
+GEOGRAPHY_count <- list.files()
+
+VURSE_GEOGRAPHY <- data.frame()
+
+for (i in 1:length(GEOGRAPHY_count)){
+  VURSE_GEOGRAPHY_1 <- read.xlsx(GEOGRAPHY_count[i], sep.names = " ")
+  VURSE_GEOGRAPHY_1 <- mutate(VURSE_GEOGRAPHY_1,WEEK_FROM = GEOGRAPHY_count[i])
+  VURSE_GEOGRAPHY_1 <- mutate(VURSE_GEOGRAPHY_1,WEEK_TILL = GEOGRAPHY_count[i])
+  VURSE_GEOGRAPHY <- rbind(VURSE_GEOGRAPHY_1, VURSE_GEOGRAPHY)
+  rm(VURSE_GEOGRAPHY_1)
+}
+VURSE_GEOGRAPHY$WEEK_FROM <-str_sub(VURSE_GEOGRAPHY$WEEK_FROM, 11,20)
+VURSE_GEOGRAPHY$WEEK_TILL <-str_sub(VURSE_GEOGRAPHY$WEEK_TILL, 22,31)
+VURSE_GEOGRAPHY <- VURSE_GEOGRAPHY %>% mutate(MCN = "VURSE")
+VURSE_GEOGRAPHY <- VURSE_GEOGRAPHY %>% filter(Geography != "Total")
+VURSE_GEOGRAPHY$WEEK_FROM <- as.Date(VURSE_GEOGRAPHY$WEEK_FROM)
+VURSE_GEOGRAPHY$WEEK_TILL <- as.Date(VURSE_GEOGRAPHY$WEEK_TILL)-1
+VURSE_GEOGRAPHY <- left_join(VURSE_GEOGRAPHY,GEO_COUNTRY, by ="Geography" )
+VURSE_GEOGRAPHY <- select(VURSE_GEOGRAPHY, c("MCN",
+                                             "WEEK_FROM",
+                                             "WEEK_TILL",
+                                             "Geography",
+                                             "Country",
+                                             "Comments added",
+                                             "Shares",
+                                             "Dislikes",
+                                             "Likes",
+                                             "Subscribers lost",
+                                             "Subscribers gained",
+                                             "Estimated monetized playbacks",
+                                             "CPM (USD)",
+                                             "Ad impressions",	"Your estimated revenue (USD)",
+                                             "Subscribers",
+                                             "Average percentage viewed (%)",
+                                             "Views","Watch time (hours)",
+                                             "Average view duration","Region","REGION WIKI"))
+
+GEOGRAPHY_ALL_NEW <- rbind(BONGO_GEOGRAPHY,TOTEM_GEOGRAPHY,VURSE_GEOGRAPHY)
+
+GEOGRAPHY_ALL_NEW$WEEK_FROM <- as.Date(GEOGRAPHY_ALL_NEW$WEEK_FROM)
+GEOGRAPHY_ALL_NEW$WEEK_TILL <- as.Date(GEOGRAPHY_ALL_NEW$WEEK_TILL)
+GEOGRAPHY_ALL_NEW <- GEOGRAPHY_ALL_NEW %>% mutate_at(c(6:20),as.numeric)
+
+
+#colnames(OLD_CHANNEL) = colnames(CHANNEL_ALL_NEW)
+
+#All_Channel <- rbind(OLD_CHANNEL,CHANNEL_ALL_NEW)
+sheet_write(GEOGRAPHY_ALL_NEW, ss = "https://docs.google.com/spreadsheets/d/<sheet link>", sheet = "<sheet name>")
+
+
+#VDO
+
+# BONGO
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/BONGO/VDO"))
+
+VDO_count <- list.files()
+
+BONGO_VDO <- data.frame()
+
+for (i in 1:length(VDO_count)){
+  BONGO_VDO_1 <- read.xlsx(VDO_count[i], sep.names = " ")
+  BONGO_VDO_1 <- mutate(BONGO_VDO_1,WEEK_FROM = VDO_count[i])
+  BONGO_VDO_1 <- mutate(BONGO_VDO_1,WEEK_TILL = VDO_count[i])
+  colnames(BONGO_VDO_1)[1] <- "Video"
+  BONGO_VDO <- rbind(BONGO_VDO_1, BONGO_VDO)
+  rm(BONGO_VDO_1)
+}
+BONGO_VDO$WEEK_FROM <-str_sub(BONGO_VDO$WEEK_FROM, 9,18)
+BONGO_VDO$WEEK_TILL <-str_sub(BONGO_VDO$WEEK_TILL, 20,29)
+BONGO_VDO <- BONGO_VDO %>% mutate(MCN = "BONGO")
+BONGO_VDO <- BONGO_VDO %>% mutate('RPM (USD)' = 0)
+BONGO_VDO <- BONGO_VDO %>% filter(Video != "Total")
+BONGO_VDO$WEEK_FROM <- as.Date(BONGO_VDO$WEEK_FROM)
+BONGO_VDO$WEEK_TILL <- as.Date(BONGO_VDO$WEEK_TILL)-1
+BONGO_VDO <- select(BONGO_VDO, c("MCN","WEEK_FROM","WEEK_TILL",
+                                 "Video",
+                                 "Video title",
+                                 "Video publish time",
+                                 "Comments added",
+                                 "Shares",
+                                 "Dislikes",
+                                 "Likes",
+                                 "Subscribers lost",
+                                 "Subscribers gained",
+                                 "Estimated monetized playbacks",
+                                 "CPM (USD)",
+                                 "Ad impressions",	"Your estimated revenue (USD)",
+                                 "Average views per viewer",
+                                 "Unique viewers",
+                                 "Impressions click-through rate (%)",
+                                 "Impressions",
+                                 "Subscribers",
+                                 "Average percentage viewed (%)",
+                                 "Views","Watch time (hours)",
+                                 "Average view duration",
+                                 "RPM (USD)"))
+
+# TOTEM
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/TOTEM/VDO"))
+
+VDO_count <- list.files()
+
+TOTEM_VDO <- data.frame()
+
+for (i in 1:length(VDO_count)){
+  TOTEM_VDO_1 <- read.xlsx(VDO_count[i], sep.names = " ")
+  TOTEM_VDO_1 <- mutate(TOTEM_VDO_1,WEEK_FROM = VDO_count[i])
+  TOTEM_VDO_1 <- mutate(TOTEM_VDO_1,WEEK_TILL = VDO_count[i])
+  colnames(TOTEM_VDO_1)[1] <- "Video"
+  TOTEM_VDO <- rbind(TOTEM_VDO_1, TOTEM_VDO)
+  rm(TOTEM_VDO_1)
+}
+TOTEM_VDO$WEEK_FROM <-str_sub(TOTEM_VDO$WEEK_FROM, 9,18)
+TOTEM_VDO$WEEK_TILL <-str_sub(TOTEM_VDO$WEEK_TILL, 20,29)
+TOTEM_VDO <- TOTEM_VDO %>% mutate(MCN = "TOTEM")
+TOTEM_VDO <- TOTEM_VDO %>% filter(Video != "Total")
+TOTEM_VDO$WEEK_FROM <- as.Date(TOTEM_VDO$WEEK_FROM)
+TOTEM_VDO$WEEK_TILL <- as.Date(TOTEM_VDO$WEEK_TILL)-1
+TOTEM_VDO <- select(TOTEM_VDO, c("MCN","WEEK_FROM","WEEK_TILL",
+                                 "Video",
+                                 "Video title",
+                                 "Video publish time",
+                                 "Comments added",
+                                 "Shares",
+                                 "Dislikes",
+                                 "Likes",
+                                 "Subscribers lost",
+                                 "Subscribers gained",
+                                 "Estimated monetized playbacks",
+                                 "CPM (USD)",
+                                 "Ad impressions",	"Your estimated revenue (USD)",
+                                 "Average views per viewer",
+                                 "Unique viewers",
+                                 "Impressions click-through rate (%)",
+                                 "Impressions",
+                                 "Subscribers",
+                                 "Average percentage viewed (%)",
+                                 "Views","Watch time (hours)",
+                                 "Average view duration",
+                                 "RPM (USD)"))
+
+# VURSE
+
+setwd(paste0(ROOT_DIRECTORY,"/WEEKLY/VURSE/VDO"))
+
+VDO_count <- list.files()
+
+VURSE_VDO <- data.frame()
+
+for (i in 1:length(VDO_count)){
+  VURSE_VDO_1 <- read.xlsx(VDO_count[i], sep.names = " ")
+  VURSE_VDO_1 <- mutate(VURSE_VDO_1,WEEK_FROM = VDO_count[i])
+  VURSE_VDO_1 <- mutate(VURSE_VDO_1,WEEK_TILL = VDO_count[i])
+  colnames(VURSE_VDO_1)[1] <- "Video"
+  VURSE_VDO <- rbind(VURSE_VDO_1, VURSE_VDO)
+  rm(VURSE_VDO_1)
+}
+VURSE_VDO$WEEK_FROM <-str_sub(VURSE_VDO$WEEK_FROM, 9,18)
+VURSE_VDO$WEEK_TILL <-str_sub(VURSE_VDO$WEEK_TILL, 20,29)
+VURSE_VDO <- VURSE_VDO %>% mutate(MCN = "VURSE")
+VURSE_VDO <- VURSE_VDO %>% mutate('Average view duration' = 0)
+VURSE_VDO <- VURSE_VDO %>% filter(Video != "Total")
+VURSE_VDO$WEEK_FROM <- as.Date(VURSE_VDO$WEEK_FROM)
+VURSE_VDO$WEEK_TILL <- as.Date(VURSE_VDO$WEEK_TILL)-1
+VURSE_VDO <- select(VURSE_VDO, c("MCN","WEEK_FROM","WEEK_TILL",
+                                 "Video",
+                                 "Video title",
+                                 "Video publish time",
+                                 "Comments added",
+                                 "Shares",
+                                 "Dislikes",
+                                 "Likes",
+                                 "Subscribers lost",
+                                 "Subscribers gained",
+                                 "Estimated monetized playbacks",
+                                 "CPM (USD)",
+                                 "Ad impressions",	"Your estimated revenue (USD)",
+                                 "Average views per viewer",
+                                 "Unique viewers",
+                                 "Impressions click-through rate (%)",
+                                 "Impressions",
+                                 "Subscribers",
+                                 "Average percentage viewed (%)",
+                                 "Views","Watch time (hours)",
+                                 "Average view duration",
+                                 "RPM (USD)"))
+
+
+##VIDEO_RAW
+setwd(paste0(ROOT_DIRECTORY,"/VDO_RAW/R_BIND"))
+VDO_RAW_count <- list.files()
+
+RAW_VDO <- data.frame()
+
+for (i in 1:length(VDO_RAW_count)){
+  RAW_VDO_1 <- read.csv(VDO_RAW_count[i], stringsAsFactors =  FALSE)
+  RAW_VDO <- rbind(RAW_VDO_1, RAW_VDO)
+  rm(RAW_VDO_1)
+}
+
+RAW_VDO <- select(RAW_VDO, c("video_id","channel_id","channel_display_name","time_uploaded","time_published","video_length","category"))
+colnames(RAW_VDO)[1] <- "Video"
+colnames(RAW_VDO)[2] <- "Channel"
+Master_Data_MCN <- select(Master, c("Network","Channel ID","Category",	"Type",	"Assigned to",	"Channel Country",	"Bucket"))
+colnames(Master_Data_MCN)[2] <- "Channel"
+
+
+
+
+
+VDO_ALL <- rbind(BONGO_VDO,TOTEM_VDO,VURSE_VDO)
+VDO_ALL_NEW <- left_join(VDO_ALL,RAW_VDO, by = "Video")
+Master_Data <- Master_Data %>% filter(Channel !="")
+VDO_ALL_NEW <- left_join(VDO_ALL_NEW,Master_Data, by = "Channel")
+VDO_ALL_NEW <- VDO_ALL_NEW %>% mutate_at(c(7:26),as.numeric)
+VDO_ALL_NEW$WEEK_FROM <- as.Date(VDO_ALL_NEW$WEEK_FROM)
+VDO_ALL_NEW$WEEK_TILL <- as.Date(VDO_ALL_NEW$WEEK_TILL)
+#VDO_ALL_NEW$`Video publish time` <- as.Date(VDO_ALL_NEW$`Video publish time`)
+
+sheet_write(VDO_ALL_NEW, ss = "https://docs.google.com/spreadsheets/d/<sheet link>", sheet = "<sheet name>")
+
+setwd(ORIGINAL_DIRECTORY)
