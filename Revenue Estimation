@@ -1,0 +1,25 @@
+library(rio)
+library(devtools)
+library(googlesheets4)
+library(dplyr)
+library(data.table)
+library(openxlsx)
+library(readxl)
+library(lubridate)
+library(stringr)
+library(tidyverse)
+library(lubridate)
+
+#Before using the code, you will need to run Weekly Combine Code 
+#so that date wise file is aggregated in the "Weekly All Data Aggregate" Sheet
+
+
+DATE_COMBINE_READ <- read_sheet("https://docs.google.com/spreadsheets/d/1eYHXLjxW2TbJO0aMEndUnxy3xRlNTwfy3V7FWp0leoU/edit#gid=1367271590",sheet = "DATE")
+DATE_OLD_COMBINE_READ <- read_sheet("https://docs.google.com/spreadsheets/d/1BfuucEZL_6RnbzBPb9HaLtV2P60igrxMLBVckH-RlNs/edit#gid=463810225",sheet = "OLD_DATE")
+DATE_COMBINE_READ <- select(DATE_COMBINE_READ, c("MCN","Date","Estimated revenue (USD)"))
+colnames(DATE_COMBINE_READ)[3] <- "REVENUE"
+DATE_OLD_COMBINE_READ <- select(DATE_OLD_COMBINE_READ, c("MCN","Date","REVENUE"))
+
+DATE_ALL_COMBINE_READ <- rbind(DATE_OLD_COMBINE_READ,DATE_COMBINE_READ)
+DATE_ALL_COMBINE_READ$Date <- as.Date(DATE_ALL_COMBINE_READ$Date)
+sheet_write(DATE_ALL_COMBINE_READ, ss = "https://docs.google.com/spreadsheets/d/1BfuucEZL_6RnbzBPb9HaLtV2P60igrxMLBVckH-RlNs/edit#gid=0", sheet = "RAW DATEWISE REV")
