@@ -16,4 +16,4 @@ Same way for Totem & Vurse Client (just changing the name Bongo to Totem & Vurse
 
 If you Run the code properly with the links and location, you will then can have the following dashboard prepared
 
-![image](https://user-images.githubusercontent.com/92089362/190849532-363b69ed-7f36-4523-b891-d1112f1c8671.png)
+![image]()
